@@ -1,9 +1,10 @@
 // src/components/TransactionForm.tsx
-import { useState, FormEvent } from 'react';
+import { useState } from 'react'; // CORRECTED
+import type { FormEvent } from 'react'; // CORRECTED
 import styled from 'styled-components';
-import { ResultsDisplay } from './ResultsDisplay'; // Import our new component
+import { ResultsDisplay } from './ResultsDisplay';
 
-// Define the shape of a single ranked PSP
+// ... (rest of the file is the same)
 interface RankedPsp {
   rank: number;
   psp_id: string;
@@ -11,8 +12,6 @@ interface RankedPsp {
   score: number;
   reason: string;
 }
-
-// ... all your styled components (FormContainer, Form, etc.) are the same ...
 const FormContainer = styled.div`
   margin-top: 2rem;
   padding: 2rem;
@@ -56,31 +55,21 @@ const SubmitButton = styled.button`
     background-color: #1d4ed8;
   }
 `;
-
-// The URL of our live backend API
 const API_URL = 'https://ai-routing-engine.onrender.com/route-transaction';
-
 export function TransactionForm() {
-  // State for the form inputs
   const [amount, setAmount] = useState('100.00');
   const [currency, setCurrency] = useState('USD');
   const [country, setCountry] = useState('US');
   const [paymentMethod, setPaymentMethod] = useState('credit_card');
-
-  // New state for handling the API response
   const [rankedPsps, setRankedPsps] = useState<RankedPsp[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    setIsLoading(true); // Start loading
+    setIsLoading(true);
     setError(null);
     setRankedPsps([]);
-
     const transactionData = {
-      // We need to add a transaction_id and user_id as our backend expects them
       transaction_id: crypto.randomUUID(),
       user_id: 'user_12345',
       amount: parseFloat(amount),
@@ -88,7 +77,6 @@ export function TransactionForm() {
       geo: country,
       payment_method: paymentMethod
     };
-
     try {
       const response = await fetch(API_URL, {
         method: 'POST',
@@ -97,21 +85,17 @@ export function TransactionForm() {
         },
         body: JSON.stringify(transactionData),
       });
-
       if (!response.ok) {
         throw new Error(`API Error: ${response.statusText}`);
       }
-
       const data = await response.json();
       setRankedPsps(data.ranked_psps);
-
     } catch (err: any) {
       setError(err.message || 'An unexpected error occurred.');
     } finally {
-      setIsLoading(false); // Stop loading
+      setIsLoading(false);
     }
   };
-
   return (
     <>
       <FormContainer>
@@ -137,7 +121,6 @@ export function TransactionForm() {
           </SubmitButton>
         </Form>
       </FormContainer>
-
       <ResultsDisplay rankedPsps={rankedPsps} isLoading={isLoading} error={error} />
     </>
   );

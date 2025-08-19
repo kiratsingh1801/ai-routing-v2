@@ -1,10 +1,11 @@
 // src/pages/LoginPage.tsx
-import { useState, FormEvent } from 'react';
+import { useState } from 'react'; // CORRECTED
+import type { FormEvent } from 'react'; // CORRECTED
 import { supabase } from '../supabaseClient';
-import { useNavigate } from 'react-router-dom'; // Import the navigation hook
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 
-// --- We can reuse the same styled components ---
+// ... (rest of the file is the same)
 const PageContainer = styled.div`
   display: flex;
   justify-content: center;
@@ -62,34 +63,27 @@ const ErrorMessage = styled.p`
   text-align: center;
   color: #ef4444; /* Red for errors */
 `;
-
-
 export function LoginPage() {
-  const navigate = useNavigate(); // Hook for programmatic navigation
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-
   const handleLogin = async (event: FormEvent) => {
     event.preventDefault();
     setLoading(true);
     setError('');
-
     const { error } = await supabase.auth.signInWithPassword({
       email: email,
       password: password,
     });
-
     if (error) {
       setError(error.message);
     } else {
-      // If login is successful, redirect to the dashboard page
       navigate('/');
     }
     setLoading(false);
   };
-
   return (
     <PageContainer>
       <FormContainer>
