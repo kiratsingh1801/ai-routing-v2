@@ -151,7 +151,7 @@ export function TransactionForm() {
           </InputGroup>
           <SubmitButton type="submit" disabled={isLoading}>
             {isLoading ? 'Routing...' : 'Route Transaction'}
-          </Button>
+          </SubmitButton>
         </Form>
       </FormContainer>
 
