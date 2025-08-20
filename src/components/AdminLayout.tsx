@@ -1,85 +1,78 @@
+// src/components/AdminLayout.tsx
 import { NavLink, Outlet } from 'react-router-dom';
 import styled from 'styled-components';
-import { Users, CreditCard, BrainCircuit } from 'lucide-react';
+import { Users, CreditCard, BrainCircuit, LogOut } from 'lucide-react';
 
 const LayoutContainer = styled.div`
   display: flex;
-  height: 100vh;
-  background-color: #f7f9fc;
+  min-height: 100vh;
+  background-color: #f9fafb;
 `;
 
-const Sidebar = styled.div`
-  width: 260px;
-  background: #111827; /* Darker background */
-  padding: 24px;
+const Sidebar = styled.aside`
+  width: 250px;
+  background-color: #4b5563; /* A different color for the admin panel */
+  color: white;
+  padding: 1rem;
   display: flex;
   flex-direction: column;
-  color: white;
-  border-right: 1px solid #374151;
 `;
 
-const Logo = styled.h2`
-    font-size: 24px;
-    font-weight: bold;
-    color: #ffffff;
-    margin-bottom: 40px;
-    text-align: center;
+const Logo = styled.h1`
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 2rem;
 `;
 
-const NavItem = styled(NavLink)`
+const Nav = styled.nav`
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+`;
+
+const StyledNavLink = styled(NavLink)`
   display: flex;
   align-items: center;
-  padding: 12px 16px;
-  border-radius: 8px;
-  color: #d1d5db; /* Lighter text for better contrast */
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.375rem;
+  color: #d1d5db;
   text-decoration: none;
-  margin-bottom: 8px;
-  font-weight: 500;
-  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
-  
-  &:hover {
-    background: #374151; /* Hover state */
-    color: #ffffff;
-  }
-  
+  transition: background-color 0.2s, color 0.2s;
+
   &.active {
-    background: #007bff;
+    background-color: #6b7280;
     color: white;
-    box-shadow: 0 4px 6px rgba(0, 123, 255, 0.2);
   }
 
-  svg {
-    margin-right: 12px;
+  &:hover {
+    background-color: #374151;
+    color: white;
   }
 `;
 
-const MainContent = styled.div`
+const MainContent = styled.main`
   flex-grow: 1;
-  padding: 40px;
-  overflow-y: auto;
+  padding: 2rem;
 `;
 
-
-export const AdminLayout = () => {
-    return (
-        <LayoutContainer>
-            <Sidebar>
-                <Logo>WiseRoute Admin</Logo>
-                <nav>
-                    <NavItem to="/admin/users">
-                        <Users size={20} /> User Management
-                    </NavItem>
-                    <NavItem to="/admin/psps">
-                        <CreditCard size={20} /> PSP Management
-                    </NavItem>
-                    <NavItem to="/admin/ai-controls">
-                        <BrainCircuit size={20} /> AI Controls
-                    </NavItem>
-                </nav>
-            </Sidebar>
-            <MainContent>
-                <Outlet />
-            </MainContent>
-        </LayoutContainer>
-    );
-};
+export function AdminLayout() {
+  return (
+    <LayoutContainer>
+      <Sidebar>
+        <Logo>Admin Panel</Logo>
+        <Nav>
+          <StyledNavLink to="/admin/users"><Users size={20} /> User Management</StyledNavLink>
+          <StyledNavLink to="/admin/psps"><CreditCard size={20} /> PSP Management</StyledNavLink>
+          <StyledNavLink to="/admin/ai-controls"><BrainCircuit size={20} /> AI Controls</StyledNavLink>
+        </Nav>
+        <StyledNavLink to="/"><LogOut size={20} /> Back to App</StyledNavLink>
+      </Sidebar>
+      <MainContent>
+        <Outlet />
+      </MainContent>
+    </LayoutContainer>
+  );
+}

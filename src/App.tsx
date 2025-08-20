@@ -1,3 +1,4 @@
+// src/App.tsx
 import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { supabase } from './supabaseClient';
@@ -13,7 +14,7 @@ import { AdminRoute } from './components/AdminRoute';
 import { AdminLayout } from './components/AdminLayout';
 import { UserManagementPage } from './pages/admin/UserManagementPage';
 import { PspManagementPage } from './pages/admin/PspManagementPage';
-import { AIModelControlsPage } from './pages/admin/AIModelControlsPage';
+import { AiControlsPage } from './pages/admin/AiControlsPage';
 
 function App() {
   const [session, setSession] = useState<any | null>(null);
@@ -31,10 +32,10 @@ function App() {
   }, []);
 
   if (loading) {
-    // You can replace this with a more sophisticated loading spinner
     return <div>Loading Application...</div>
   }
 
+  // This component protects our merchant dashboard routes
   const ProtectedRoutes = ({ session }: { session: any }) => {
     if (!session) return <Navigate to="/login" />;
     return <DashboardLayout />;
@@ -43,25 +44,25 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public Authentication Routes */}
+        {/* Public Routes */}
         <Route path="/signup" element={<AuthPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/update-password" element={<UpdatePasswordPage />} />
         
-        {/* Protected Merchant Dashboard Routes */}
+        {/* Protected Merchant Routes */}
         <Route element={<ProtectedRoutes session={session} />}>
           <Route path="/" element={<OverviewPage />} />
           <Route path="/transactions" element={<TransactionsPage />} />
           <Route path="/api-keys" element={<ApiKeysPage />} />
         </Route>
 
-        {/* Protected Admin Panel Routes */}
+        {/* Protected Admin Routes */}
         <Route element={<AdminRoute />}>
           <Route element={<AdminLayout />}>
             <Route path="/admin/users" element={<UserManagementPage />} />
             <Route path="/admin/psps" element={<PspManagementPage />} />
-            <Route path="/admin/ai-controls" element={<AIModelControlsPage />} />
+            <Route path="/admin/ai-controls" element={<AiControlsPage />} />
           </Route>
         </Route>
       </Routes>
