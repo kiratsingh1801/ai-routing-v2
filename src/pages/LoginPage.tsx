@@ -1,10 +1,11 @@
 // src/pages/LoginPage.tsx
-import { useState, FormEvent } from 'react';
+import { useState } from 'react';
+import type { FormEvent } from 'react'; // CORRECTED
 import { supabase } from '../supabaseClient';
 import { useNavigate, Link } from 'react-router-dom';
 import styled from 'styled-components';
 
-// --- Styled components are the same as before ---
+// --- Styled components (no changes) ---
 const PageContainer = styled.div`
   display: flex;
   justify-content: center;
@@ -70,6 +71,7 @@ const LinksContainer = styled.div`
 `;
 
 export function LoginPage() {
+  // --- Component logic (no changes) ---
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -112,7 +114,6 @@ export function LoginPage() {
             required
           />
           <LinksContainer>
-            {/* We will build the forgot password page next */}
             <Link to="/forgot-password" style={{color: '#6b7280'}}>Forgot password?</Link>
           </LinksContainer>
           <Button type="submit" disabled={loading}>

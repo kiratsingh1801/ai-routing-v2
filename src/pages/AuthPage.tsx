@@ -1,10 +1,11 @@
 // src/pages/AuthPage.tsx
-import { useState, FormEvent } from 'react';
+import { useState } from 'react';
+import type { FormEvent } from 'react'; // CORRECTED
 import { supabase } from '../supabaseClient';
 import styled from 'styled-components';
 import { Link } from 'react-router-dom';
 
-// --- Styled components are mostly the same ---
+// --- Styled components (no changes) ---
 const PageContainer = styled.div`
   display: flex;
   justify-content: center;
@@ -68,14 +69,12 @@ const FooterText = styled.p`
   color: #6b7280;
 `;
 
-
 export function AuthPage() {
-  // Add state for the new fields
+  // --- Component logic (no changes) ---
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -85,7 +84,6 @@ export function AuthPage() {
     setMessage('');
     setError('');
 
-    // Add a check for matching passwords
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
       return;
@@ -96,7 +94,6 @@ export function AuthPage() {
       email: email,
       password: password,
       options: {
-        // Add the name to the user's metadata
         data: {
           full_name: name,
         }
@@ -106,7 +103,6 @@ export function AuthPage() {
     if (error) {
       setError(error.message);
     } else {
-      // Update the success message
       setMessage('Success! Please check your email for a confirmation link.');
     }
     setLoading(false);
