@@ -1,10 +1,10 @@
 // src/pages/AuthPage.tsx
-import { useState } from 'react'; // CORRECTED
-import type { FormEvent } from 'react'; // CORRECTED
+import { useState, FormEvent } from 'react';
 import { supabase } from '../supabaseClient';
 import styled from 'styled-components';
+import { Link } from 'react-router-dom';
 
-// ... (rest of the file is the same)
+// --- Styled components are mostly the same ---
 const PageContainer = styled.div`
   display: flex;
   justify-content: center;
@@ -49,51 +49,81 @@ const Button = styled.button`
   border-radius: 0.375rem;
   border: none;
   cursor: pointer;
-  &:hover {
-    background-color: #1d4ed8;
-  }
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
+  &:hover { background-color: #1d4ed8; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
 `;
 const Message = styled.p`
   margin-top: 1rem;
   text-align: center;
-  color: #16a34a; /* Green for success */
+  color: #16a34a;
 `;
 const ErrorMessage = styled.p`
   margin-top: 1rem;
   text-align: center;
-  color: #ef4444; /* Red for errors */
+  color: #ef4444;
 `;
+const FooterText = styled.p`
+  margin-top: 1.5rem;
+  text-align: center;
+  color: #6b7280;
+`;
+
+
 export function AuthPage() {
+  // Add state for the new fields
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+
   const handleSignUp = async (event: FormEvent) => {
     event.preventDefault();
-    setLoading(true);
     setMessage('');
     setError('');
+
+    // Add a check for matching passwords
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+
+    setLoading(true);
     const { error } = await supabase.auth.signUp({
       email: email,
       password: password,
+      options: {
+        // Add the name to the user's metadata
+        data: {
+          full_name: name,
+        }
+      }
     });
+
     if (error) {
       setError(error.message);
     } else {
-      setMessage('Success! You can now log in.');
+      // Update the success message
+      setMessage('Success! Please check your email for a confirmation link.');
     }
     setLoading(false);
   };
+
   return (
     <PageContainer>
       <FormContainer>
         <Title>Create an Account</Title>
         <Form onSubmit={handleSignUp}>
+          <Input 
+            type="text" 
+            placeholder="Your full name" 
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
           <Input 
             type="email" 
             placeholder="Your email" 
@@ -108,12 +138,22 @@ export function AuthPage() {
             onChange={(e) => setPassword(e.target.value)}
             required
           />
+          <Input 
+            type="password"
+            placeholder="Confirm your password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+          />
           <Button type="submit" disabled={loading}>
-            {loading ? 'Signing Up...' : 'Sign Up'}
+            {loading ? 'Creating Account...' : 'Create Account'}
           </Button>
         </Form>
         {message && <Message>{message}</Message>}
         {error && <ErrorMessage>{error}</ErrorMessage>}
+        <FooterText>
+          Already have an account? <Link to="/login" style={{color: '#2563eb'}}>Sign In</Link>
+        </FooterText>
       </FormContainer>
     </PageContainer>
   );

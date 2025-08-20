@@ -1,11 +1,10 @@
 // src/pages/LoginPage.tsx
-import { useState } from 'react'; // CORRECTED
-import type { FormEvent } from 'react'; // CORRECTED
+import { useState, FormEvent } from 'react';
 import { supabase } from '../supabaseClient';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import styled from 'styled-components';
 
-// ... (rest of the file is the same)
+// --- Styled components are the same as before ---
 const PageContainer = styled.div`
   display: flex;
   justify-content: center;
@@ -50,25 +49,33 @@ const Button = styled.button`
   border-radius: 0.375rem;
   border: none;
   cursor: pointer;
-  &:hover {
-    background-color: #1d4ed8;
-  }
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
+  &:hover { background-color: #1d4ed8; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
 `;
 const ErrorMessage = styled.p`
   margin-top: 1rem;
   text-align: center;
-  color: #ef4444; /* Red for errors */
+  color: #ef4444;
 `;
+const FooterText = styled.p`
+  margin-top: 1.5rem;
+  text-align: center;
+  color: #6b7280;
+`;
+const LinksContainer = styled.div`
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1rem;
+  font-size: 0.875rem;
+`;
+
 export function LoginPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
   const handleLogin = async (event: FormEvent) => {
     event.preventDefault();
     setLoading(true);
@@ -84,6 +91,7 @@ export function LoginPage() {
     }
     setLoading(false);
   };
+
   return (
     <PageContainer>
       <FormContainer>
@@ -103,11 +111,18 @@ export function LoginPage() {
             onChange={(e) => setPassword(e.target.value)}
             required
           />
+          <LinksContainer>
+            {/* We will build the forgot password page next */}
+            <Link to="/forgot-password" style={{color: '#6b7280'}}>Forgot password?</Link>
+          </LinksContainer>
           <Button type="submit" disabled={loading}>
             {loading ? 'Signing In...' : 'Sign In'}
           </Button>
         </Form>
         {error && <ErrorMessage>{error}</ErrorMessage>}
+        <FooterText>
+          Don't have an account? <Link to="/signup" style={{color: '#2563eb'}}>Sign Up</Link>
+        </FooterText>
       </FormContainer>
     </PageContainer>
   );
