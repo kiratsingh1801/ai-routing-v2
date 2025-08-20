@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
-import { Session } from '@supabase/supabase-js';
+import type { Session } from '@supabase/supabase-js'; // CORRECTED
 
 export function AdminRoute() {
   const [session, setSession] = useState<Session | null>(null);
