@@ -10,9 +10,10 @@ import { TransactionsPage } from './pages/TransactionsPage';
 import { ApiKeysPage } from './pages/ApiKeysPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { UpdatePasswordPage } from './pages/UpdatePasswordPage';
-import { AdminRoute } from './components/AdminRoute'; // Import the new guard
-import { AdminLayout } from './components/AdminLayout'; // Import the new layout
-import { UserManagementPage } from './pages/admin/UserManagementPage'; // Import the new admin page
+import { AdminRoute } from './components/AdminRoute';
+import { AdminLayout } from './components/AdminLayout';
+import { UserManagementPage } from './pages/admin/UserManagementPage';
+import { PspManagementPage } from './pages/admin/PspManagementPage'; // Import the new page
 
 function App() {
   const [session, setSession] = useState<any | null>(null);
@@ -59,7 +60,7 @@ function App() {
         <Route element={<AdminRoute />}>
           <Route element={<AdminLayout />}>
             <Route path="/admin/users" element={<UserManagementPage />} />
-            {/* We will add more admin routes here */}
+            <Route path="/admin/psps" element={<PspManagementPage />} />
           </Route>
         </Route>
       </Routes>
