@@ -1,9 +1,10 @@
 // src/pages/OverviewPage.tsx
-import { useState, useEffect } from 'react';
 import styled from 'styled-components';
+import { useState, useEffect } from 'react';
 import { StatCard } from '../components/StatCard';
+import { TransactionForm } from '../components/TransactionForm'; // Import the form
 import { DollarSign, Zap, CheckCircle, Clock } from 'lucide-react';
-import { supabase } from '../supabaseClient'; // Import supabase
+import { supabase } from '../supabaseClient';
 
 const PageHeader = styled.h1`
   font-size: 1.875rem;
@@ -16,6 +17,19 @@ const Grid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 1.5rem;
+`;
+
+const SectionDivider = styled.hr`
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  margin: 3rem 0;
+`;
+
+const SectionTitle = styled.h2`
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 1.5rem;
 `;
 
 const LoadingText = styled.p`
@@ -33,15 +47,11 @@ export function OverviewPage() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        // Get the user's session token
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) throw new Error('Not authenticated. Please log in again.');
 
-        // Make the request with the Authorization header
         const response = await fetch(STATS_API_URL, {
-          headers: {
-            'Authorization': `Bearer ${session.access_token}`
-          }
+          headers: { 'Authorization': `Bearer ${session.access_token}` }
         });
 
         if (!response.ok) {
@@ -82,6 +92,11 @@ export function OverviewPage() {
           <StatCard key={stat.title} title={stat.title} value={stat.value} Icon={stat.Icon} />
         ))}
       </Grid>
+
+      <SectionDivider />
+
+      <SectionTitle>Run a Test Transaction</SectionTitle>
+      <TransactionForm />
     </div>
   );
 }
