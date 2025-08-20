@@ -1,6 +1,7 @@
 // src/pages/TransactionsPage.tsx
 import { useState, useEffect } from 'react';
 import styled from 'styled-components';
+import { supabase } from '../supabaseClient'; // Import supabase
 
 const PageHeader = styled.h1`
   font-size: 1.875rem;
@@ -74,7 +75,17 @@ export function TransactionsPage() {
       setIsLoading(true);
       setError(null);
       try {
-        const response = await fetch(`${API_URL}?page=${currentPage}&page_size=${pageSize}`);
+        // Get the user's session token first
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) throw new Error('Not authenticated.');
+
+        const response = await fetch(`${API_URL}?page=${currentPage}&page_size=${pageSize}`, {
+          headers: {
+            // Add the Authorization header to the request
+            'Authorization': `Bearer ${session.access_token}`
+          }
+        });
+
         if (!response.ok) throw new Error('Failed to fetch transactions.');
 
         const data = await response.json();
@@ -88,7 +99,7 @@ export function TransactionsPage() {
     };
 
     fetchTransactions();
-  }, [currentPage]); // Re-fetch transactions whenever the currentPage changes
+  }, [currentPage]);
 
   const totalPages = Math.ceil(totalCount / pageSize);
 
@@ -129,8 +140,8 @@ export function TransactionsPage() {
         <Button onClick={() => setCurrentPage(p => p - 1)} disabled={currentPage === 1}>
           Previous
         </Button>
-        <span>Page {currentPage} of {totalPages}</span>
-        <Button onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage === totalPages}>
+        <span>Page {currentPage} of {totalPages || 1}</span>
+        <Button onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage >= totalPages}>
           Next
         </Button>
       </PaginationContainer>
