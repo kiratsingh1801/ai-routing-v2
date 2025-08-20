@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { supabase } from '../../supabaseClient'; // Make sure this path is correct
+import { supabase } from '../../supabaseClient';
 
 // --- Types ---
 interface AIConfig {
@@ -10,6 +10,31 @@ interface AIConfig {
     speed_weight: number;
     risk_weight: number;
 }
+
+// --- API Helper ---
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+
+const authenticatedFetch = async (path: string, options: RequestInit = {}) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+        throw new Error("User is not authenticated.");
+    }
+
+    const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`,
+        ...options.headers,
+    };
+
+    const response = await fetch(`${apiBaseUrl}/${path}`, { ...options, headers });
+
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ detail: 'An unknown error occurred' }));
+        throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+    }
+    return response.json();
+};
+
 
 // --- Styled Components ---
 const PageHeader = styled.h1`
@@ -84,6 +109,15 @@ const TotalWarning = styled.div`
     margin-top: 5px;
 `;
 
+const ErrorMessage = styled.div`
+    color: #dc3545;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+`;
+
 
 export const AIModelControlsPage = () => {
     const [configs, setConfigs] = useState<AIConfig[]>([]);
@@ -94,18 +128,10 @@ export const AIModelControlsPage = () => {
     useEffect(() => {
         const fetchConfig = async () => {
             setIsLoading(true);
+            setError('');
             try {
-                const session = (await supabase.auth.getSession()).data.session;
-                if (!session) throw new Error("Not authenticated");
-
-                const { data, error } = await supabase.functions.invoke('get-admin-data', {
-                    method: 'GET',
-                    body: { path: 'ai-config' }
-                });
-
-                if (error) throw error;
-                if (data) setConfigs(data);
-
+                const data = await authenticatedFetch('admin/ai-config');
+                setConfigs(data);
             } catch (err: any) {
                 setError(err.message || 'Failed to fetch config.');
             } finally {
@@ -130,17 +156,11 @@ export const AIModelControlsPage = () => {
         setIsSaving(true);
         setError('');
         try {
-            const session = (await supabase.auth.getSession()).data.session;
-            if (!session) throw new Error("Not authenticated");
-            
-            const { error } = await supabase.functions.invoke('update-admin-data', {
+            await authenticatedFetch('admin/ai-config', {
                 method: 'PUT',
-                body: { path: 'ai-config', payload: configs }
+                body: JSON.stringify(configs),
             });
-
-            if (error) throw error;
             alert('Configuration saved successfully!');
-
         } catch (err: any) {
             setError(err.message || 'Failed to save config.');
         } finally {
@@ -153,11 +173,13 @@ export const AIModelControlsPage = () => {
     }
 
     if (isLoading) return <div>Loading AI Configurations...</div>;
-    if (error && !configs.length) return <div>Error: {error}</div>;
 
     return (
         <div>
             <PageHeader>AI Model Controls</PageHeader>
+
+            {error && <ErrorMessage>Error: {error}</ErrorMessage>}
+
             <p style={{marginBottom: "20px"}}>Adjust the importance of different factors for each routing strategy. The weights for each strategy must sum up to 1.0.</p>
             {configs.map(config => {
                 const total = parseFloat(calculateTotal(config));
@@ -184,7 +206,7 @@ export const AIModelControlsPage = () => {
                     </ConfigCard>
                 );
             })}
-             {error && <div style={{ color: 'red', marginBottom: '15px' }}>{error}</div>}
+            
             <SaveButton onClick={handleSave} disabled={isSaving || configs.some(c => parseFloat(calculateTotal(c)) !== 1.0)}>
                 {isSaving ? 'Saving...' : 'Save All Changes'}
             </SaveButton>
