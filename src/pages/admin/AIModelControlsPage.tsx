@@ -29,7 +29,8 @@ const authenticatedFetch = async (path: string, options: RequestInit = {}) => {
     const response = await fetch(`${apiBaseUrl}/${path}`, { ...options, headers });
 
     if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ detail: 'An unknown error occurred' }));
+        // Try to parse error detail from JSON response
+        const errorData = await response.json().catch(() => ({ detail: 'The server returned a non-JSON response.' }));
         throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
     }
     return response.json();
@@ -130,7 +131,8 @@ export const AIModelControlsPage = () => {
             setIsLoading(true);
             setError('');
             try {
-                const data = await authenticatedFetch('admin/ai-config');
+                // UPDATED to call the new renamed endpoint
+                const data = await authenticatedFetch('admin/ai-settings');
                 setConfigs(data);
             } catch (err: any) {
                 setError(err.message || 'Failed to fetch config.');
@@ -156,7 +158,8 @@ export const AIModelControlsPage = () => {
         setIsSaving(true);
         setError('');
         try {
-            await authenticatedFetch('admin/ai-config', {
+            // UPDATED to call the new renamed endpoint
+            await authenticatedFetch('admin/ai-settings', {
                 method: 'PUT',
                 body: JSON.stringify(configs),
             });
@@ -172,7 +175,7 @@ export const AIModelControlsPage = () => {
         return (config.success_rate_weight + config.cost_weight + config.speed_weight + config.risk_weight).toFixed(2);
     }
 
-    if (isLoading) return <div>Loading AI Configurations...</div>;
+    if (isLoading) return <div>Loading AI Settings...</div>;
 
     return (
         <div>
