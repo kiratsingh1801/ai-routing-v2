@@ -67,8 +67,8 @@ const ModalContent = styled.div`
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  overflow: hidden; /* Important for containing children */
-  margin: auto; /* This will center the modal vertically */
+  overflow: hidden;
+  margin: auto;
 `;
 const ModalHeader = styled.h2`
   padding: 1.5rem 2rem;
@@ -155,7 +155,10 @@ export function PspManagementPage() {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     
-    const getFloat = (name: string) => parseFloat(formData.get(name) as string) || null;
+    const getFloat = (name: string) => {
+        const value = formData.get(name) as string;
+        return value ? parseFloat(value) : null;
+    };
     const getStringArray = (name: string) => (formData.get(name) as string)?.split(',').map(s => s.trim()).filter(Boolean) || [];
 
     const pspData = {
@@ -231,9 +234,9 @@ export function PspManagementPage() {
                 <tr key={psp.id}>
                   <Td>{psp.name}</Td>
                   <Td>{psp.payin_fee_percent}%</Td>
-                  <Td>{(psp.payin_success_rate * 100).toFixed(1)}%</Td>
+                  <Td>{psp.payin_success_rate ? (psp.payin_success_rate * 100).toFixed(1) + '%' : 'N/A'}</Td>
                   <Td>{psp.payout_fee_percent}%</Td>
-                  <Td>{(psp.payout_success_rate * 100).toFixed(1)}%</Td>
+                  <Td>{psp.payout_success_rate ? (psp.payout_success_rate * 100).toFixed(1) + '%' : 'N/A'}</Td>
                   <Td>{psp.is_active ? '✅' : '❌'}</Td>
                   <Td><Button onClick={() => handleOpenModal(psp)} style={{backgroundColor: '#6b7280'}}><Edit size={16}/></Button></Td>
                 </tr>
