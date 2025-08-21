@@ -1,7 +1,8 @@
 // src/components/DashboardLayout.tsx
 import { NavLink, Outlet } from 'react-router-dom';
 import styled from 'styled-components';
-import { LayoutDashboard, ArrowLeftRight, KeyRound, LogOut } from 'lucide-react';
+import { LayoutDashboard, ArrowLeftRight, KeyRound, BrainCircuit, LogOut } from 'lucide-react';
+import { supabase } from '../supabaseClient';
 
 const LayoutContainer = styled.div`
   display: flex;
@@ -59,20 +60,24 @@ const MainContent = styled.main`
 `;
 
 export function DashboardLayout() {
-  // We will add the logout function here later
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+  };
+
   return (
     <LayoutContainer>
       <Sidebar>
-        <Logo>WiseRoute</Logo> {/* You can change this name */}
+        <Logo>WiseRoute</Logo>
         <Nav>
           <StyledNavLink to="/" end><LayoutDashboard size={20} /> Overview</StyledNavLink>
           <StyledNavLink to="/transactions"><ArrowLeftRight size={20} /> Transactions</StyledNavLink>
           <StyledNavLink to="/api-keys"><KeyRound size={20} /> API Keys</StyledNavLink>
+          <StyledNavLink to="/routing-strategy"><BrainCircuit size={20} /> Routing Strategy</StyledNavLink>
         </Nav>
-        <StyledNavLink to="/login" onClick={() => {/* Handle Logout */}}><LogOut size={20} /> Logout</StyledNavLink>
+        <StyledNavLink to="/login" onClick={handleLogout}><LogOut size={20} /> Logout</StyledNavLink>
       </Sidebar>
       <MainContent>
-        <Outlet /> {/* This is where our pages will be rendered */}
+        <Outlet />
       </MainContent>
     </LayoutContainer>
   );

@@ -15,6 +15,7 @@ import { AdminLayout } from './components/AdminLayout';
 import { UserManagementPage } from './pages/admin/UserManagementPage';
 import { PspManagementPage } from './pages/admin/PspManagementPage';
 import { AiControlsPage } from './pages/admin/AiControlsPage';
+import { RoutingStrategyPage } from './pages/RoutingStrategyPage';
 
 function App() {
   const [session, setSession] = useState<any | null>(null);
@@ -55,6 +56,7 @@ function App() {
           <Route path="/" element={<OverviewPage />} />
           <Route path="/transactions" element={<TransactionsPage />} />
           <Route path="/api-keys" element={<ApiKeysPage />} />
+          <Route path="/routing-strategy" element={<RoutingStrategyPage />} />
         </Route>
 
         {/* Protected Admin Routes */}
