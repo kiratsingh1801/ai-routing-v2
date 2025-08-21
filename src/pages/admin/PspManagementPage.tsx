@@ -150,20 +150,28 @@ export function PspManagementPage() {
         <Table>
           <thead>
             <tr>
-                <Th>Name</Th><Th>Pay-in Fee</Th><Th>Pay-in Success</Th><Th>Active</Th><Th>Actions</Th>
+                <Th>Name</Th>
+                <Th>Pay-in Fee</Th>
+                <Th>Pay-in Success</Th>
+                <Th>Payout Fee</Th>
+                <Th>Payout Success</Th>
+                <Th>Active</Th>
+                <Th>Actions</Th>
             </tr>
           </thead>
           <tbody>
             {isLoading ? (
-              <tr><Td colSpan={5}>Loading PSPs...</Td></tr>
+              <tr><Td colSpan={7}>Loading PSPs...</Td></tr>
             ) : error ? (
-              <tr><Td colSpan={5} style={{ color: 'red' }}>{error}</Td></tr>
+              <tr><Td colSpan={7} style={{ color: 'red' }}>{error}</Td></tr>
             ) : (
               psps.map((psp) => (
                 <tr key={psp.id}>
                   <Td>{psp.name}</Td>
                   <Td>{psp.payin_fee_percent}%</Td>
                   <Td>{(psp.payin_success_rate * 100).toFixed(1)}%</Td>
+                  <Td>{psp.payout_fee_percent}%</Td>
+                  <Td>{(psp.payout_success_rate * 100).toFixed(1)}%</Td>
                   <Td>{psp.is_active ? '✅' : '❌'}</Td>
                   <Td><Button onClick={() => handleOpenModal(psp)} style={{backgroundColor: '#6b7280'}}><Edit size={16}/></Button></Td>
                 </tr>
