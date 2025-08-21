@@ -1,7 +1,6 @@
 // src/pages/MonitoringPage.tsx
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import styled from 'styled-components';
-import { supabase } from '../supabaseClient';
 
 const PageHeader = styled.h1`
     font-size: 1.875rem;
@@ -18,7 +17,7 @@ const PlaceholderText = styled.p`
 `;
 
 export function MonitoringPage() {
-    const [error, setError] = useState<string | null>(null);
+    const [error] = useState<string | null>(null);
 
     // We will add the real-time logic and state here in the next step.
 
