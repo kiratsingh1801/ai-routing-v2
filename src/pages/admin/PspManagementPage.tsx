@@ -25,19 +25,47 @@ const Td = styled.td`
   padding: 1rem 1.5rem; border-bottom: 1px solid #e5e7eb; font-size: 0.875rem;
 `;
 const Button = styled.button`
-  padding: 0.5rem 1rem; background-color: #2563eb; color: white; font-weight: 500; border: none;
-  border-radius: 0.375rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;
-  &:hover { background-color: #1d4ed8; }
+  padding: 0.6rem 1.5rem;
+  background-color: #2563eb;
+  color: white;
+  font-weight: 600;
+  border: none;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: background-color 0.2s, box-shadow 0.2s;
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+
+  &:hover {
+    background-color: #1d4ed8;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  }
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
 `;
+
+const SecondaryButton = styled(Button)`
+  background-color: white;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  &:hover {
+    background-color: #f9fafb;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  }
+`;
+
 const ModalBackdrop = styled.div`
   position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);
   display: flex; justify-content: center; align-items: center; z-index: 1000;
-  padding: 2rem 0; /* Add padding for smaller screens */
+  padding: 2rem;
+  overflow-y: auto;
 `;
 const ModalContent = styled.div`
   background-color: white; padding: 2rem; border-radius: 0.5rem; width: 90%; max-width: 700px;
-  max-height: 90vh; /* Ensure modal is not taller than the viewport */
-  overflow-y: auto; /* Add a scrollbar if content overflows */
+  max-height: 90vh;
+  overflow-y: auto;
 `;
 const Form = styled.form` display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; `;
 const Input = styled.input` width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem;`;
@@ -62,7 +90,6 @@ export function PspManagementPage() {
   const [editingPsp, setEditingPsp] = useState<any | null>(null);
 
   const fetchPsps = async () => {
-    // ... (fetch logic is the same)
     try {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) throw new Error('Not authenticated.');
@@ -95,7 +122,6 @@ export function PspManagementPage() {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     
-    // Helper to safely parse form data
     const getFloat = (name: string) => parseFloat(formData.get(name) as string) || null;
     const getStringArray = (name: string) => (formData.get(name) as string)?.split(',').map(s => s.trim()).filter(Boolean) || [];
 
@@ -226,7 +252,7 @@ export function PspManagementPage() {
                     </FullWidthInputGroup>
 
                     <ButtonGroup>
-                        <Button type="button" onClick={handleCloseModal} style={{backgroundColor: '#6b7280'}}>Cancel</Button>
+                        <SecondaryButton type="button" onClick={handleCloseModal}>Cancel</SecondaryButton>
                         <Button type="submit">Save</Button>
                     </ButtonGroup>
                 </Form>
