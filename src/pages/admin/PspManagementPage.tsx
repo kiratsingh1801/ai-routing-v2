@@ -58,8 +58,9 @@ const SecondaryButton = styled(Button)`
 
 const ModalBackdrop = styled.div`
   position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);
-  display: flex; justify-content: center; align-items: center; z-index: 1000;
+  display: flex; justify-content: center; z-index: 1000;
   padding: 2rem;
+  overflow-y: auto;
 `;
 const ModalContent = styled.div`
   background-color: white; border-radius: 0.5rem; width: 90%; max-width: 700px;
@@ -67,6 +68,7 @@ const ModalContent = styled.div`
   display: flex;
   flex-direction: column;
   overflow: hidden; /* Important for containing children */
+  margin: auto; /* This will center the modal vertically */
 `;
 const ModalHeader = styled.h2`
   padding: 1.5rem 2rem;
@@ -99,6 +101,8 @@ const ButtonGroup = styled.div`
   padding: 1rem 2rem;
   border-top: 1px solid #e5e7eb;
   background-color: #f9fafb;
+  position: sticky;
+  bottom: 0;
 `;
 const FormSectionTitle = styled.h3`
     grid-column: span 2;
