@@ -74,6 +74,7 @@ const ActionButton = styled.button`
     border: none;
     cursor: pointer;
     padding: 0.25rem;
+    margin-right: 0.5rem;
     color: #6b7280;
     &:hover { color: #111827; }
     &:disabled { color: #d1d5db; cursor: not-allowed; }
@@ -112,9 +113,8 @@ const Input = styled.input` padding: 0.5rem; border: 1px solid #d1d5db; border-r
 const Select = styled.select` padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; background-color: white; `;
 const ButtonGroup = styled.div` display: flex; justify-content: flex-end; gap: 1rem; padding: 1rem 2rem; border-top: 1px solid #e5e7eb; background-color: #f9fafb; `;
 const ErrorMessage = styled.p` color: #ef4444; font-size: 0.875rem; text-align: center; margin-top: 1rem;`;
-const SuccessMessage = styled.p` color: #16a34a; font-size: 0.875rem; `;
+const SuccessMessage = styled.p` color: #16a34a; font-size: 0.875rem; text-align: center; margin-top: 1rem;`;
 
-// --- Type Definition for a User ---
 interface User {
     id: string;
     email: string;
@@ -130,23 +130,15 @@ export function UserManagementPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [currentAdminId, setCurrentAdminId] = useState<string | null>(null);
-
-    // --- State for Modals ---
-    const [isInviteModalOpen, setInviteModalOpen] = useState(false);
-    const [isEditModalOpen, setEditModalOpen] = useState(false);
-    const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
-
-    const [editingUser, setEditingUser] = useState<User | null>(null);
-    const [deletingUser, setDeletingUser] = useState<User | null>(null);
-    
-    // --- State for Form Operations ---
+    const [isModalOpen, setModalOpen] = useState(false);
+    const [modalType, setModalType] = useState<'invite' | 'edit' | 'delete' | null>(null);
+    const [activeUser, setActiveUser] = useState<User | null>(null);
     const [inviteEmail, setInviteEmail] = useState('');
-    const [inviteRole, setInviteRole] = useState('merchant');
-    const [newRole, setNewRole] = useState<'merchant' | 'admin'>('merchant');
+    const [userRole, setUserRole] = useState<'merchant' | 'admin'>('merchant');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [modalError, setModalError] = useState('');
     const [modalSuccess, setModalSuccess] = useState('');
-    
+
     const fetchUsers = async () => {
         setIsLoading(true);
         try {
@@ -157,95 +149,80 @@ export function UserManagementPage() {
             const response = await fetch(`${API_BASE_URL}/users`, {
                 headers: { 'Authorization': `Bearer ${session.access_token}` }
             });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || 'Failed to fetch users.');
-            }
+            if (!response.ok) { const d = await response.json(); throw new Error(d.detail); }
             const data = await response.json();
             setUsers(data);
-        } catch (err: any) {
-            setError(err.message);
-        } finally {
-            setIsLoading(false);
-        }
+        } catch (err: any) { setError(err.message); } finally { setIsLoading(false); }
     };
 
-    useEffect(() => {
-        fetchUsers();
-    }, []);
+    useEffect(() => { fetchUsers(); }, []);
 
-    const closeModals = () => {
-        setInviteModalOpen(false);
-        setEditModalOpen(false);
-        setDeleteModalOpen(false);
-        setModalError('');
-        setModalSuccess('');
-        setIsSubmitting(false);
-    };
-    
-    // --- Handlers for opening modals ---
-    const handleOpenEditModal = (user: User) => {
-        setEditingUser(user);
-        setNewRole(user.role || 'merchant');
-        setEditModalOpen(true);
+    const openModal = (type: 'invite' | 'edit' | 'delete', user: User | null = null) => {
+        setModalType(type);
+        setActiveUser(user);
+        if (user && type === 'edit') setUserRole(user.role || 'merchant');
+        setModalOpen(true);
     };
 
-    const handleOpenDeleteModal = (user: User) => {
-        setDeletingUser(user);
-        setDeleteModalOpen(true);
-    };
-
-    // --- API Call Handlers ---
-    const handleInviteSubmit = async (event: FormEvent) => {
-        event.preventDefault();
-        setIsSubmitting(true); setModalError(''); setModalSuccess('');
-        try {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session) throw new Error('Authentication session expired.');
-            const response = await fetch(`${API_BASE_URL}/invite`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
-                body: JSON.stringify({ email: inviteEmail, role: inviteRole })
-            });
-            if (!response.ok) { const errorData = await response.json(); throw new Error(errorData.detail); }
+    const closeModal = () => {
+        setModalOpen(false);
+        setTimeout(() => {
+            setModalType(null);
+            setActiveUser(null);
+            setModalError('');
+            setModalSuccess('');
             setInviteEmail('');
-            await fetchUsers();
-            closeModals();
-        } catch (err: any) { setModalError(err.message); } finally { setIsSubmitting(false); }
+            setIsSubmitting(false);
+        }, 300);
     };
 
-    const handleRoleUpdate = async (event: FormEvent) => {
+    const handleSubmit = async (event: FormEvent) => {
         event.preventDefault();
-        if (!editingUser) return;
         setIsSubmitting(true); setModalError(''); setModalSuccess('');
         try {
             const { data: { session } } = await supabase.auth.getSession();
-            if (!session) throw new Error('Authentication session expired.');
-            const response = await fetch(`${API_BASE_URL}/users/${editingUser.id}`, {
-                method: 'PUT',
+            if (!session) throw new Error('Authentication expired.');
+            let url = '';
+            let method = '';
+            let body: any = {};
+
+            if (modalType === 'invite') {
+                url = `${API_BASE_URL}/invite`;
+                method = 'POST';
+                body = { email: inviteEmail, role: userRole };
+            } else if (modalType === 'edit' && activeUser) {
+                url = `${API_BASE_URL}/users/${activeUser.id}`;
+                method = 'PUT';
+                body = { role: userRole };
+            }
+
+            const response = await fetch(url, {
+                method,
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session.access_token}` },
-                body: JSON.stringify({ role: newRole })
+                body: JSON.stringify(body)
             });
-            if (!response.ok) { const errorData = await response.json(); throw new Error(errorData.detail); }
-            await fetchUsers(); // Refresh the list
-            closeModals();
+            if (!response.ok) { const d = await response.json(); throw new Error(d.detail); }
+            
+            setModalSuccess('Success!');
+            await fetchUsers();
+            setTimeout(closeModal, 1500);
+
         } catch (err: any) { setModalError(err.message); } finally { setIsSubmitting(false); }
     };
     
-    const handleDeleteUser = async () => {
-        if (!deletingUser) return;
+    const handleDelete = async () => {
+        if (!activeUser) return;
         setIsSubmitting(true); setModalError('');
         try {
             const { data: { session } } = await supabase.auth.getSession();
-            if (!session) throw new Error('Authentication session expired.');
-            const response = await fetch(`${API_BASE_URL}/users/${deletingUser.id}`, {
+            if (!session) throw new Error('Authentication expired.');
+            const response = await fetch(`${API_BASE_URL}/users/${activeUser.id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${session.access_token}` }
             });
-            if (!response.ok) { const errorData = await response.json(); throw new Error(errorData.detail); }
-            setUsers(users.filter(u => u.id !== deletingUser.id)); // Optimistic update
-            closeModals();
+            if (!response.ok) { const d = await response.json(); throw new Error(d.detail); }
+            closeModal();
+            setUsers(users.filter(u => u.id !== activeUser.id));
         } catch (err: any) { setModalError(err.message); } finally { setIsSubmitting(false); }
     };
 
@@ -253,18 +230,14 @@ export function UserManagementPage() {
         <div>
             <HeaderContainer>
                 <PageHeader>User Management</PageHeader>
-                <Button onClick={() => setInviteModalOpen(true)}><PlusCircle size={16} /> Invite User</Button>
+                <Button onClick={() => openModal('invite')}><PlusCircle size={16} /> Invite User</Button>
             </HeaderContainer>
 
             <TableContainer>
                 <Table>
                     <thead>
                         <tr>
-                            <Th>Email</Th>
-                            <Th>Role</Th>
-                            <Th>Last Sign In</Th>
-                            <Th>Date Joined</Th>
-                            <Th>Actions</Th>
+                            <Th>Email</Th><Th>Role</Th><Th>Last Sign In</Th><Th>Date Joined</Th><Th>Actions</Th>
                         </tr>
                     </thead>
                     <tbody>
@@ -278,12 +251,8 @@ export function UserManagementPage() {
                                     <Td>{user.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleString() : 'Never'}</Td>
                                     <Td>{new Date(user.created_at).toLocaleString()}</Td>
                                     <Td>
-                                        <ActionButton onClick={() => handleOpenEditModal(user)} disabled={user.id === currentAdminId} title="Edit user role">
-                                            <Edit size={18} />
-                                        </ActionButton>
-                                        <ActionButton onClick={() => handleOpenDeleteModal(user)} disabled={user.id === currentAdminId} title="Delete user">
-                                            <Trash2 size={18} />
-                                        </ActionButton>
+                                        <ActionButton onClick={() => openModal('edit', user)} disabled={user.id === currentAdminId} title="Edit user role"><Edit size={18} /></ActionButton>
+                                        <ActionButton onClick={() => openModal('delete', user)} disabled={user.id === currentAdminId} title="Delete user"><Trash2 size={18} /></ActionButton>
                                     </Td>
                                 </tr>
                             ))
@@ -292,64 +261,50 @@ export function UserManagementPage() {
                 </Table>
             </TableContainer>
 
-            {/* Invite Modal */}
-            {isInviteModalOpen && (
+            {isModalOpen && (
                  <ModalBackdrop>
                  <ModalContent>
-                     <ModalHeader>Invite New User</ModalHeader>
-                     <Form onSubmit={handleInviteSubmit}>
-                         <InputGroup><Label htmlFor="email">Email Address</Label><Input id="email" type="email" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} required /></InputGroup>
-                         <InputGroup><Label htmlFor="role">Role</Label><Select id="role" value={inviteRole} onChange={(e) => setInviteRole(e.target.value)}><option value="merchant">Merchant</option><option value="admin">Admin</option></Select></InputGroup>
-                         {modalError && <ErrorMessage>{modalError}</ErrorMessage>}
-                     </Form>
-                     <ButtonGroup>
-                         <SecondaryButton type="button" onClick={closeModals}>Cancel</SecondaryButton>
-                         <Button type="submit" onClick={handleInviteSubmit} disabled={isSubmitting}>{isSubmitting ? 'Sending...' : 'Send Invitation'}</Button>
-                     </ButtonGroup>
-                 </ModalContent>
-             </ModalBackdrop>
-            )}
-
-            {/* Edit Modal */}
-            {isEditModalOpen && editingUser && (
-                <ModalBackdrop>
-                <ModalContent>
-                    <ModalHeader>Edit User Role</ModalHeader>
-                    <Form onSubmit={handleRoleUpdate}>
-                        <p>Editing user: <strong>{editingUser.email}</strong></p>
-                        <InputGroup>
-                            <Label htmlFor="role">Role</Label>
-                            <Select id="role" value={newRole} onChange={(e) => setNewRole(e.target.value as 'merchant' | 'admin')}>
-                                <option value="merchant">Merchant</option>
-                                <option value="admin">Admin</option>
-                            </Select>
-                        </InputGroup>
-                        {modalError && <ErrorMessage>{modalError}</ErrorMessage>}
-                    </Form>
-                    <ButtonGroup>
-                        <SecondaryButton type="button" onClick={closeModals}>Cancel</SecondaryButton>
-                        <Button type="submit" onClick={handleRoleUpdate} disabled={isSubmitting}>{isSubmitting ? 'Saving...' : 'Save Changes'}</Button>
-                    </ButtonGroup>
-                </ModalContent>
-            </ModalBackdrop>
-            )}
-
-            {/* Delete Modal */}
-            {isDeleteModalOpen && deletingUser && (
-                 <ModalBackdrop>
-                 <ModalContent>
-                     <ModalHeader>Delete User</ModalHeader>
-                     <div style={{ padding: '2rem', textAlign: 'center' }}>
-                        <p>Are you sure you want to permanently delete this user?</p>
-                        <p><strong>{deletingUser.email}</strong></p>
-                        {modalError && <ErrorMessage>{modalError}</ErrorMessage>}
-                     </div>
-                     <ButtonGroup>
-                         <SecondaryButton type="button" onClick={closeModals}>Cancel</SecondaryButton>
-                         <Button type="button" onClick={handleDeleteUser} disabled={isSubmitting} style={{backgroundColor: '#ef4444'}}>
-                            {isSubmitting ? 'Deleting...' : 'Delete User'}
-                         </Button>
-                     </ButtonGroup>
+                     {modalType === 'invite' && <>
+                         <ModalHeader>Invite New User</ModalHeader>
+                         <Form onSubmit={handleSubmit}>
+                             <InputGroup><Label>Email Address</Label><Input type="email" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)} required /></InputGroup>
+                             <InputGroup><Label>Role</Label><Select value={userRole} onChange={(e) => setUserRole(e.target.value as 'merchant' | 'admin')}><option value="merchant">Merchant</option><option value="admin">Admin</option></Select></InputGroup>
+                             {modalError && <ErrorMessage>{modalError}</ErrorMessage>}
+                             {modalSuccess && <SuccessMessage>{modalSuccess}</SuccessMessage>}
+                         </Form>
+                         <ButtonGroup>
+                             <SecondaryButton onClick={closeModal}>Cancel</SecondaryButton>
+                             <Button onClick={handleSubmit} disabled={isSubmitting}>{isSubmitting ? 'Sending...' : 'Send Invitation'}</Button>
+                         </ButtonGroup>
+                     </>}
+                     {modalType === 'edit' && activeUser && <>
+                         <ModalHeader>Edit User Role</ModalHeader>
+                         <Form onSubmit={handleSubmit}>
+                             <p>Editing user: <strong>{activeUser.email}</strong></p>
+                             <InputGroup>
+                                 <Label>Role</Label>
+                                 <Select value={userRole} onChange={(e) => setUserRole(e.target.value as 'merchant' | 'admin')}><option value="merchant">Merchant</option><option value="admin">Admin</option></Select>
+                             </InputGroup>
+                             {modalError && <ErrorMessage>{modalError}</ErrorMessage>}
+                             {modalSuccess && <SuccessMessage>{modalSuccess}</SuccessMessage>}
+                         </Form>
+                         <ButtonGroup>
+                             <SecondaryButton onClick={closeModal}>Cancel</SecondaryButton>
+                             <Button onClick={handleSubmit} disabled={isSubmitting}>{isSubmitting ? 'Saving...' : 'Save Changes'}</Button>
+                         </ButtonGroup>
+                     </>}
+                     {modalType === 'delete' && activeUser && <>
+                         <ModalHeader>Delete User</ModalHeader>
+                         <div style={{ padding: '2rem', textAlign: 'center' }}>
+                            <p>Are you sure you want to permanently delete this user?</p>
+                            <p><strong>{activeUser.email}</strong></p>
+                             {modalError && <ErrorMessage>{modalError}</ErrorMessage>}
+                         </div>
+                         <ButtonGroup>
+                             <SecondaryButton onClick={closeModal}>Cancel</SecondaryButton>
+                             <Button onClick={handleDelete} disabled={isSubmitting} style={{backgroundColor: '#ef4444'}}>{isSubmitting ? 'Deleting...' : 'Delete User'}</Button>
+                         </ButtonGroup>
+                     </>}
                  </ModalContent>
              </ModalBackdrop>
             )}
