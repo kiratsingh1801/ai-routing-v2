@@ -49,10 +49,6 @@ const ToggleLabel = styled.label`
     font-weight: 600;
 `;
 
-const ToggleSwitch = styled.label`
-    /* ... Switch styles ... */
-`;
-
 const SelectContainer = styled.div`
     display: grid;
     grid-template-columns: 1fr 1fr;
