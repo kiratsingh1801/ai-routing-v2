@@ -14,9 +14,12 @@ interface Transaction {
     status: string | null;
 }
 
+// UPDATED: Added new failover fields
 interface DetailedTransaction extends Transaction {
     payment_method: string | null;
     routed_psp_name: string | null;
+    routing_cascade: string[] | null; // Array of PSP IDs
+    retry_attempts: number;
 }
 
 interface FilterData {
@@ -99,7 +102,6 @@ const ActionButton = styled.button`
     &:hover { color: #2563eb; }
 `;
 
-// --- Modal Styles ---
 const ModalBackdrop = styled.div`
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background-color: rgba(0,0,0,0.5);
@@ -131,6 +133,7 @@ const ModalBody = styled.div`
     display: grid;
     grid-template-columns: 1fr 2fr;
     gap: 1rem;
+    align-items: start;
 `;
 
 const DetailLabel = styled.span`
@@ -143,6 +146,16 @@ const DetailValue = styled.span`
     word-break: break-all;
 `;
 
+const CascadeList = styled.ol`
+    padding-left: 1.25rem;
+    margin: 0;
+    list-style: decimal;
+`;
+
+const CascadeItem = styled.li`
+    font-family: monospace;
+    font-size: 0.8rem;
+`;
 
 const API_BASE_URL = 'https://ai-routing-engine.onrender.com';
 
@@ -152,7 +165,6 @@ export function MonitoringPage() {
     const [filters, setFilters] = useState({ psp: '', country: '', currency: '', status: '' });
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedTx, setSelectedTx] = useState<DetailedTransaction | null>(null);
     const [isLoadingDetails, setIsLoadingDetails] = useState(false);
@@ -192,11 +204,22 @@ export function MonitoringPage() {
     useEffect(() => {
         const channel = supabase.channel('realtime-transactions')
             .on('postgres_changes', {
-                event: 'INSERT',
+                event: '*', // Listen for INSERT and UPDATE
                 schema: 'public',
                 table: 'transactions'
             }, (payload) => {
-                setTransactions(currentTransactions => [payload.new as Transaction, ...currentTransactions]);
+                setTransactions(currentTransactions => {
+                    const newTx = payload.new as Transaction;
+                    // Replace existing transaction if it's an update, otherwise add it to the top
+                    const index = currentTransactions.findIndex(t => t.id === newTx.id);
+                    if (index !== -1) {
+                        const updatedTxs = [...currentTransactions];
+                        updatedTxs[index] = newTx;
+                        return updatedTxs;
+                    } else {
+                        return [newTx, ...currentTransactions];
+                    }
+                });
             })
             .subscribe();
 
@@ -234,6 +257,10 @@ export function MonitoringPage() {
                 throw new Error(errData.detail || 'Failed to fetch transaction details.');
             }
             const data = await response.json();
+            // The cascade is stored as a JSON string, so we parse it here
+            if (data.routing_cascade && typeof data.routing_cascade === 'string') {
+                data.routing_cascade = JSON.parse(data.routing_cascade);
+            }
             setSelectedTx(data);
         } catch (err: any) {
             setDetailError(err.message);
@@ -248,8 +275,6 @@ export function MonitoringPage() {
     return (
         <div>
             <PageHeader>Real-time Transaction Monitoring</PageHeader>
-            
-            {/* CORRECTED: Added the filter UI back in */}
             <FiltersContainer>
                 <FilterGroup>
                     <FilterLabel>Country</FilterLabel>
@@ -314,11 +339,19 @@ export function MonitoringPage() {
                                 <>
                                     <DetailLabel>Transaction ID</DetailLabel><DetailValue>{selectedTx.id}</DetailValue>
                                     <DetailLabel>Timestamp</DetailLabel><DetailValue>{new Date(selectedTx.created_at).toLocaleString()}</DetailValue>
-                                    <DetailLabel>Amount</DetailLabel><DetailValue>{selectedTx.amount.toFixed(2)} {selectedTx.currency}</DetailValue>
-                                    <DetailLabel>Country</DetailLabel><DetailValue>{selectedTx.geo}</DetailValue>
-                                    <DetailLabel>Payment Method</DetailLabel><DetailValue>{selectedTx.payment_method || 'N/A'}</DetailValue>
                                     <DetailLabel>Status</DetailLabel><DetailValue>{selectedTx.status || 'N/A'}</DetailValue>
+                                    <DetailLabel>Retry Attempts</DetailLabel><DetailValue>{selectedTx.retry_attempts || 0}</DetailValue>
                                     <DetailLabel>Routed PSP</DetailLabel><DetailValue>{selectedTx.routed_psp_name || 'N/A'}</DetailValue>
+                                    <DetailLabel>Routing Cascade</DetailLabel>
+                                    <DetailValue>
+                                        {selectedTx.routing_cascade && selectedTx.routing_cascade.length > 0 ? (
+                                            <CascadeList>
+                                                {selectedTx.routing_cascade.map((pspId, index) => (
+                                                    <CascadeItem key={index}>{pspId}</CascadeItem>
+                                                ))}
+                                            </CascadeList>
+                                        ) : 'N/A'}
+                                    </DetailValue>
                                 </>
                              )
                             }
