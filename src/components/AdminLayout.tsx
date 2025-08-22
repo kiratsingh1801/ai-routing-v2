@@ -1,7 +1,7 @@
 // src/components/AdminLayout.tsx
 import { NavLink, Outlet } from 'react-router-dom';
 import styled from 'styled-components';
-import { Users, CreditCard, BrainCircuit, LogOut, Activity } from 'lucide-react'; // <-- IMPORT ACTIVITY ICON
+import { Users, CreditCard, BrainCircuit, LogOut, Activity, HeartPulse } from 'lucide-react'; // <-- IMPORT ICON
 
 const LayoutContainer = styled.div`
     display: flex;
@@ -67,7 +67,8 @@ export function AdminLayout() {
                     <StyledNavLink to="/admin/users"><Users size={20} /> User Management</StyledNavLink>
                     <StyledNavLink to="/admin/psps"><CreditCard size={20} /> PSP Management</StyledNavLink>
                     <StyledNavLink to="/admin/ai-controls"><BrainCircuit size={20} /> AI Controls</StyledNavLink>
-                    <StyledNavLink to="/admin/monitoring"><Activity size={20} /> Monitoring</StyledNavLink> {/* <-- NEW LINK */}
+                    <StyledNavLink to="/admin/monitoring"><Activity size={20} /> Monitoring</StyledNavLink>
+                    <StyledNavLink to="/admin/psp-health"><HeartPulse size={20} /> PSP Health</StyledNavLink> {/* <-- NEW LINK */}
                 </Nav>
                 <StyledNavLink to="/"><LogOut size={20} /> Back to App</StyledNavLink>
             </Sidebar>
