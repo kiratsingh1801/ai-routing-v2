@@ -153,13 +153,11 @@ export function MonitoringPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    // --- NEW: State for the drill-down modal ---
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedTx, setSelectedTx] = useState<DetailedTransaction | null>(null);
     const [isLoadingDetails, setIsLoadingDetails] = useState(false);
     const [detailError, setDetailError] = useState<string | null>(null);
 
-    // Fetch initial data
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -191,7 +189,6 @@ export function MonitoringPage() {
         fetchData();
     }, []);
 
-    // Set up real-time subscription
     useEffect(() => {
         const channel = supabase.channel('realtime-transactions')
             .on('postgres_changes', {
@@ -221,7 +218,6 @@ export function MonitoringPage() {
         });
     }, [transactions, filters]);
 
-    // --- NEW: Function to handle viewing details ---
     const handleViewDetails = async (transactionId: string) => {
         setIsModalOpen(true);
         setIsLoadingDetails(true);
@@ -252,8 +248,30 @@ export function MonitoringPage() {
     return (
         <div>
             <PageHeader>Real-time Transaction Monitoring</PageHeader>
+            
+            {/* CORRECTED: Added the filter UI back in */}
             <FiltersContainer>
-                {/* Filters remain the same */}
+                <FilterGroup>
+                    <FilterLabel>Country</FilterLabel>
+                    <Select name="country" value={filters.country} onChange={handleFilterChange}>
+                        <option value="">All</option>
+                        {filterData?.countries.map(c => <option key={c} value={c}>{c}</option>)}
+                    </Select>
+                </FilterGroup>
+                <FilterGroup>
+                    <FilterLabel>Currency</FilterLabel>
+                    <Select name="currency" value={filters.currency} onChange={handleFilterChange}>
+                        <option value="">All</option>
+                        {filterData?.currencies.map(c => <option key={c} value={c}>{c}</option>)}
+                    </Select>
+                </FilterGroup>
+                <FilterGroup>
+                    <FilterLabel>Status</FilterLabel>
+                    <Select name="status" value={filters.status} onChange={handleFilterChange}>
+                        <option value="">All</option>
+                        {filterData?.statuses.map(s => <option key={s} value={s}>{s}</option>)}
+                    </Select>
+                </FilterGroup>
             </FiltersContainer>
 
             <TableContainer>
@@ -282,7 +300,6 @@ export function MonitoringPage() {
                 </Table>
             </TableContainer>
 
-            {/* --- NEW: Drill-down Modal --- */}
             {isModalOpen && (
                 <ModalBackdrop>
                     <ModalContent>
