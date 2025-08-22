@@ -17,7 +17,8 @@ import { PspManagementPage } from './pages/admin/PspManagementPage';
 import { AiControlsPage } from './pages/admin/AiControlsPage';
 import { RoutingStrategyPage } from './pages/RoutingStrategyPage';
 import { MonitoringPage } from './pages/MonitoringPage';
-import { PspHealthPage } from './pages/PspHealthPage'; // <-- NEW IMPORT
+import { PspHealthPage } from './pages/PspHealthPage';
+import { AbTestingPage } from './pages/AbTestingPage'; // <-- NEW IMPORT
 
 function App() {
     const [session, setSession] = useState<any | null>(null);
@@ -59,7 +60,8 @@ function App() {
                     <Route path="/" element={<OverviewPage />} />
                     <Route path="/transactions" element={<TransactionsPage />} />
                     <Route path="/monitoring" element={<MonitoringPage />} />
-                    <Route path="/psp-health" element={<PspHealthPage />} /> {/* <-- NEW ROUTE */}
+                    <Route path="/psp-health" element={<PspHealthPage />} />
+                    <Route path="/ab-testing" element={<AbTestingPage />} /> {/* <-- NEW ROUTE */}
                     <Route path="/api-keys" element={<ApiKeysPage />} />
                     <Route path="/routing-strategy" element={<RoutingStrategyPage />} />
                 </Route>
@@ -71,7 +73,7 @@ function App() {
                         <Route path="/admin/psps" element={<PspManagementPage />} />
                         <Route path="/admin/ai-controls" element={<AiControlsPage />} />
                         <Route path="/admin/monitoring" element={<MonitoringPage />} />
-                        <Route path="/admin/psp-health" element={<PspHealthPage />} /> {/* <-- NEW ROUTE */}
+                        <Route path="/admin/psp-health" element={<PspHealthPage />} />
                     </Route>
                 </Route>
             </Routes>

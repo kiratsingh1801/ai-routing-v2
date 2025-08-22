@@ -1,7 +1,7 @@
 // src/components/DashboardLayout.tsx
 import { NavLink, Outlet } from 'react-router-dom';
 import styled from 'styled-components';
-import { LayoutDashboard, ArrowLeftRight, KeyRound, BrainCircuit, LogOut, Activity, HeartPulse } from 'lucide-react'; // <-- IMPORT ICON
+import { LayoutDashboard, ArrowLeftRight, KeyRound, BrainCircuit, LogOut, Activity, HeartPulse, TestTube } from 'lucide-react'; // <-- IMPORT ICON
 import { supabase } from '../supabaseClient';
 
 const LayoutContainer = styled.div`
@@ -72,7 +72,8 @@ export function DashboardLayout() {
                     <StyledNavLink to="/" end><LayoutDashboard size={20} /> Overview</StyledNavLink>
                     <StyledNavLink to="/transactions"><ArrowLeftRight size={20} /> Transactions</StyledNavLink>
                     <StyledNavLink to="/monitoring"><Activity size={20} /> Monitoring</StyledNavLink>
-                    <StyledNavLink to="/psp-health"><HeartPulse size={20} /> PSP Health</StyledNavLink> {/* <-- NEW LINK */}
+                    <StyledNavLink to="/psp-health"><HeartPulse size={20} /> PSP Health</StyledNavLink>
+                    <StyledNavLink to="/ab-testing"><TestTube size={20} /> A/B Testing</StyledNavLink> {/* <-- NEW LINK */}
                     <StyledNavLink to="/api-keys"><KeyRound size={20} /> API Keys</StyledNavLink>
                     <StyledNavLink to="/routing-strategy"><BrainCircuit size={20} /> Routing Strategy</StyledNavLink>
                 </Nav>
